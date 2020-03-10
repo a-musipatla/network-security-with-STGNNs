@@ -1,0 +1,150 @@
+\documentclass{article}
+
+% if you need to pass options to natbib, use, e.g.:
+%     \PassOptionsToPackage{numbers, compress}{natbib}
+% before loading neurips_2019
+
+% ready for submission
+% \usepackage{neurips_2019}
+
+% to compile a preprint version, e.g., for submission to arXiv, add add the
+% [preprint] option:
+%     \usepackage[preprint]{neurips_2019}
+
+% to compile a camera-ready version, add the [final] option, e.g.:
+%     \usepackage[final]{neurips_2019}
+
+% to avoid loading the natbib package, add option nonatbib:
+%     \usepackage[nonatbib]{neurips_2019}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+
+\title{Multivariate Anomaly Detection for Network Security Using Spatial-Temporal Graph Neural Networks}
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to LaTeX to determine where to break the
+% lines. Using \AND forces a line break at that point. So, if LaTeX puts 3 of 4
+% authors names on the first line, and the last on the second line, try using
+% \AND instead of \And before the third author name.
+
+\author{%
+  Grisam Shah, Amritha Musipatla \\
+  \texttt{gvs2110@columbia.edu, sm3773@columbia.edu} \\
+  % examples of more authors
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \AND
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+}
+
+\begin{document}
+
+\maketitle
+
+\section{Overview}
+
+In this project we will use spatial-temporal graph neural networks (STGNNs) for anomaly detection on observed local area network traffic, with the purpose of detecting network intrusion attacks. 
+
+Specifically, we aim to find applications for spatial-temporal GNNs in intrusion detection in networks, where each node of the network is characterized as a node of a spatial-temporal GNN. Our hypothesis is that the nodes on any machine to machine communication based network are non-linearly correlated; running one device typically involves running multiple devices, and being able to observe and predict patterns of network traffic between nodes will help detect an attack in the form of anomalous behavior quickly and accurately.
+
+\subsection{Previous work}
+
+Wu and Pan [1] taxonomized STGNNs as their own class of GNN. They identified applications for STGNNs, including traffic speed forecasting [2] and driver maneuver anticipation [3]. Separately, Wang and Zhou [4] used STGNNs to predict cellular network traffic. These applications did not focus on anomaly detection, which is the crux of an intrusion detection problem. However, all of those above applications have out-performed other time-series based approaches, suggesting that spatial-temporal GNNs have promise in related network traffic problems. 
+
+Previous network intrusion detection systems (IDS) have modeled relationships between nodes as directed acyclic graphs (primarily through Bayesian networks) [5], none thus far have attempted to use STGNNs to model a network. Bayesian networks have been slow in classifying high-dimensional datasets and may not perform as well in real-time scenarios as GNNs [5]. Furthermore, none of the current methods have attempted to find patterns between nodes in a network to detect network traffic, which is one advantage of a STGNN approach.
+
+\subsection{The problem}
+
+Using the KDD '99 [6] dataset, we will model a static local area network as a GNN, with machines in the network represented as nodes and network traffic connections represented as vertices. The KDD '99 dataset provides connection logs over a nine week period on a military network, with artificial intrusion attempts made at known times. This dataset characterizes every connection as a sequence of TCP packets, between a source IP address and a target IP address. Each connection is labeled as normal, or as an attack (with one out of four possible attack types specified). 
+
+Features for each connection packet are shown in Table 1. Failed login attempts, rejected connection attempts, and source and destination IP are included in the metadata for each connection.
+
+\begin{table}[]
+\begin{tabular}{|l|l|l|}
+\hline
+\textit{feature\_name} & \textit{description} & \textit{type} \\ \hline
+duration & length (number of seconds) of the connection & continuous \\
+protocol\_type & type of the protocol, e.g. tcp, udp, etc. & discrete \\
+service & network service on the destination, e.g., http, telnet, etc. & discrete \\
+src\_byte & number of data bytes from source to destination & continuous \\
+dst\_bytes & number of data bytes from destination to source & continuous \\
+flag & normal or error status of the connection & discrete \\
+land & 1 if connection is from/to the same host/port; 0 otherwise & discrete \\
+wrong\_fragment & number of ``wrong'' fragments & continuous \\
+urgent & number of urgent packets & continuous \\ \hline
+\end{tabular}
+\caption{Basic features of individual TCP connections in KDD '99 dataset [6]}
+\end{table}
+
+
+We will use the source and destination connections on a subset of "non-attack" connections to train a STGNN on expected network traffic within the network. After that, we will test the STGNN against data that contain a mix of non-attack and attack data, with the goal being for the GNN to identify when there is anomalous network traffic and to identify the features within the anomalies. 
+
+The nodes will then have to identify in real-time when it detects abnormal traffic, what node is being attacked and a confidence score to indicate how confident the neural network is that this abnormal pattern is a true attack.
+
+\paragraph{Evaluation Criteria} 
+We will measure efficacy of our method on the following criteria:
+
+\begin{enumerate}
+    \item Percentage of attacks identified (false positives): Of the number of attacks sent to the network, how many was the GNN able to identify?
+    \item Time delay: how long into the attack (or after the attack) does the GNN need to recognize an anomalous pattern? This metric takes into account the GNNs ability to recognize patterns of network traffic and use that to more quickly identify anomalies.
+    \item Type of attack: As there are four types of attacks, this GNN would be successful in extracting the features of each type of attack and being able to identify what each attack looks like. This may require implementation of other ML methods on top of the GNN, i.e. k-means clustering once an attack has been identified, and is used to enhance the GNN rather than the primary goal of the neural network.
+\end{enumerate}
+
+
+\section*{References}
+
+\medskip
+
+\small
+
+
+[1] Wu, Zonghan, Pan, Shirui, Chen, Fengwen et al. \ (2019) A Comprehensive Survey on Graph Neural
+Networks.  {\it arXiv preprint arXiv:1901.00596}
+
+[2] Y. Li, R. Yu, C. Shahabi, and Y. Liu.\ (2018) Diffusion convolutional recurrent
+neural network: Data-driven traffic forecasting.  {\it Proc. of ICLR}
+
+[3] A. Jain, A. R. Zamir, S. Savarese, and A. Saxena, (2017) Structural-rnn: Deep learning on spatio-temporal graphs,? {\it Procedures of CVPR} pp. 5308-5317.
+
+[4] X. Wang, Z. Zhou, Z. Yang, Y. Liu and C. Peng, (2017) "Spatio-temporal analysis and prediction of cellular traffic in metropolis," IEEE 25th International Conference on Network Protocols (ICNP), Toronto, ON, 2017, pp. 1-10.
+
+[5] M. Ring, S. Wunderlich, D. Scheuring, D. Landes, \& A. Hotho (2019) "A Survey of Network-based Intrusion Detection Data Sets" {\it arXiv preprint arXiv:1903.02460}
+
+[6] Dua, D. and Graff, C. (2019). "KDD Cup 1999 Data" \\ {\it http://archive.ics.uci.edu/ml/datasets/KDD+Cup+1999+Data}UCI Machine Learning Repository: University of California, School of Information and Computer Science, Irvine, CA, 2019. 
+
+
+
+
+
+
+
+
+
+
+
+\end{document}
